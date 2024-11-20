@@ -3,7 +3,7 @@ An intelligent system designed to automate the processing, analysis, and storage
 
 ## 🌟 Features
 - 📤 Document Upload:
-   - Upload documents via a web interface or REST API.
+   - Upload documents via a REST API.
 - 🤖 AI-Powered Processing
    - OCR (Optical Character Recognition): Extract text from scanned documents and images.
    - NLP (Natural Language Processing):Extract structured fields like names, dates, and amounts.
