@@ -1,29 +1,22 @@
-# app.py
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import JSONResponse
 from pymongo import MongoClient
 from bson import ObjectId
 from config import Config
-import os
 from werkzeug.utils import secure_filename
-
-# Initialize FastAPI app
-app = FastAPI()
+from file_upload.models import DocumentModel, UploadResponse
+import os
 
 # MongoDB connection
 client = MongoClient(Config.MONGO_URI)
 db = client.smart_documents  # Database name
 documents_collection = db.documents  # Collection name
 
-print('!!!!', documents_collection)
-
 # Set up upload folder
 UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-@app.post("/upload/")
+
 async def upload_document(file: UploadFile = File(...)):
-    print('file is ', file.__dict__)
     # Check for file presence
     if not file:
         raise HTTPException(status_code=400, detail="No file uploaded")
@@ -34,15 +27,15 @@ async def upload_document(file: UploadFile = File(...)):
     with open(file_path, "wb") as f:
         f.write(await file.read())
 
-    # Insert document metadata into MongoDB
-    document_data = {
-        'filename': filename,
-        'file_path': file_path,
-        'status': 'Uploaded',
-        'processing_results': None
-    }
-    inserted_document = documents_collection.insert_one(document_data)
+    # Create document data using the model
+    document_data = DocumentModel(filename=filename, file_path=file_path)
 
-    document_data["_id"] = str(inserted_document.inserted_id)
+    # Insert the document into MongoDB
+    inserted_document = documents_collection.insert_one(document_data.model_dump())
+    document_id = str(inserted_document.inserted_id)
 
-    return JSONResponse(content={"message": "File uploaded successfully!", "file_data": document_data}, status_code=200)
+    # Add the `_id` field to the response
+    return UploadResponse(
+        message="Uploaded successfully",
+        file_data={**document_data.model_dump(), "_id": document_id}
+    )
