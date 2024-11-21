@@ -17,19 +17,14 @@ async def upload_d(file: UploadFile = File(...)):
 
 @app.post('/register/')
 async def register(user: Register):
-    try:
-        response = await register_user(user)
-        return response
-    except Exception as e:
-        return {"error": str(e)}
+    response = await register_user(user)
+    return response
 
 
 @app.post('/login/')
 async def login(user: Login):
-    try:
-        response = await login_user(user)
-        return response
-    except Exception as e:
-        return {"error": str(e)}
+    response = await login_user(user)
+    return response
+
 
     

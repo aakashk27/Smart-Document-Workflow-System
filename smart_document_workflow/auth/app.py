@@ -18,7 +18,7 @@ async def register_user(user: Register):
 
 
 async def login_user(user: Login):
-    user_data  = user_collection.find_one({'email': 'user.email'})
+    user_data  = user_collection.find_one({'email': user.email})
     if not user_data:
         raise HTTPException(status_code=400, detail='Invalid credentials')
     if not user_data['password'] or not verify_password(user.password, user_data['password']):

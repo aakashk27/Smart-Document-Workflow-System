@@ -6,6 +6,9 @@ from werkzeug.utils import secure_filename
 from file_upload.models import DocumentModel, UploadResponse
 import os
 
+from nlp import extract_entities
+from ocr import extract_text_from_image
+
 # MongoDB connection
 client = MongoClient(Config.MONGO_URI)
 db = client.smart_documents  # Database name
@@ -24,11 +27,18 @@ async def upload_document(file: UploadFile = File(...)):
     # Secure and save file
     filename = secure_filename(file.filename)
     file_path = os.path.join(UPLOAD_FOLDER, filename)
+
+    text_from_file = extract_text_from_image(file_path)
+    entities_from_file = extract_entities(text_from_file)
+    
     with open(file_path, "wb") as f:
         f.write(await file.read())
 
     # Create document data using the model
-    document_data = DocumentModel(filename=filename, file_path=file_path)
+    document_data = DocumentModel(filename=filename, file_path=file_path,  processing_results={
+            "text": text_from_file,
+            "entities": entities_from_file,
+        })
 
     # Insert the document into MongoDB
     inserted_document = documents_collection.insert_one(document_data.model_dump())
