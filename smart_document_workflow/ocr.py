@@ -2,6 +2,8 @@ import pytesseract
 from PIL import Image
 from fastapi import HTTPException
 
+pytesseract.pytesseract.tesseract_cmd = r'/opt/homebrew/bin/tesseract'
+
 def extract_text_from_image(file_path: str) -> str:
     """
     Extract text from an image using Tesseract OCR.

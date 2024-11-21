@@ -28,12 +28,12 @@ async def upload_document(file: UploadFile = File(...)):
     filename = secure_filename(file.filename)
     file_path = os.path.join(UPLOAD_FOLDER, filename)
 
-    text_from_file = extract_text_from_image(file_path)
-    entities_from_file = extract_entities(text_from_file)
     
     with open(file_path, "wb") as f:
         f.write(await file.read())
 
+    text_from_file = extract_text_from_image(file_path)
+    entities_from_file = extract_entities(text_from_file)
     # Create document data using the model
     document_data = DocumentModel(filename=filename, file_path=file_path,  processing_results={
             "text": text_from_file,

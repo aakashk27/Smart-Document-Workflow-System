@@ -8,7 +8,7 @@ class DocumentModel(BaseModel):
     file_path: str
     status: str = 'Uploaded'
     created_at: datetime.datetime = datetime.datetime.now()
-    processing_results: Optional[dict[str,str]] = None
+    processing_results: dict = {}
 
 
 class UploadResponse(BaseModel):
