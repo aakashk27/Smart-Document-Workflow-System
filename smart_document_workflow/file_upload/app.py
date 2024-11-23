@@ -1,4 +1,6 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from typing import Annotated
+from fastapi import Depends, FastAPI, UploadFile, File, HTTPException
+from fastapi.security import OAuth2PasswordBearer
 from pymongo import MongoClient
 from bson import ObjectId
 from config import Config
@@ -11,18 +13,24 @@ import asyncio
 from nlp import extract_entities
 from ocr import extract_text_from_file
 from openai_summary import text_summarization
+from auth.services import verify_access_token
 
 # MongoDB connection
 client = MongoClient(Config.MONGO_URI)
 db = client.smart_documents
 documents_collection = db.documents
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 # Set up upload folder
 UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
-async def upload_document(file: UploadFile = File(...)):
+async def upload_document(*, file: UploadFile = File(...), token: Annotated[str, Depends(oauth2_scheme)]):
+
+    user_email = verify_access_token(token)
+    
     if not file:
         raise HTTPException(status_code=400, detail="No file uploaded")
 
