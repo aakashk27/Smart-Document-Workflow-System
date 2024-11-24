@@ -20,14 +20,12 @@ client = MongoClient(Config.MONGO_URI)
 db = client.smart_documents
 documents_collection = db.documents
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
 # Set up upload folder
 UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
-async def upload_document(*, file: UploadFile = File(...), token: Annotated[str, Depends(oauth2_scheme)]):
+async def upload_document(*, file: UploadFile = File(...), token):
 
     user_email = verify_access_token(token)
     
