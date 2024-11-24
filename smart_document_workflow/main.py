@@ -4,7 +4,7 @@ from fastapi.security import OAuth2AuthorizationCodeBearer, OAuth2PasswordBearer
 from file_upload.app import upload_document
 from auth.app import login_user, register_user
 from auth.models import Login, Register
-from smart_document_workflow.custom_auth import custom_openapi
+from custom_auth import custom_openapi
 
 
 app = FastAPI()
