@@ -14,6 +14,9 @@ from nlp import extract_entities
 from ocr import extract_text_from_file
 from openai_summary import text_summarization
 from auth.services import verify_access_token
+from file_upload.get_pdf_from_text import get_pdf
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # MongoDB connection
 client = MongoClient(Config.MONGO_URI)
@@ -25,16 +28,14 @@ UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
-async def upload_document(*, file: UploadFile = File(...), token):
-
-    user_email = verify_access_token(token)
+async def upload_document(*, file: UploadFile = File(...)):
     
     if not file:
         raise HTTPException(status_code=400, detail="No file uploaded")
 
-    # Secure and save file asynchronously
     filename = secure_filename(file.filename)
     file_path = os.path.join(UPLOAD_FOLDER, filename)
+    
     try:
         async with aiofiles.open(file_path, "wb") as f:
             await f.write(await file.read())
@@ -48,6 +49,8 @@ async def upload_document(*, file: UploadFile = File(...), token):
     try:
         text_from_file = await extract_text_from_file_async(file_path)
         summarization = await summarize_text_async(text_from_file)
+        if len(summarization) > 1000:
+            get_pdf(summarization)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Processing error: {str(e)}")
 
@@ -56,7 +59,7 @@ async def upload_document(*, file: UploadFile = File(...), token):
         filter = {"_id": ObjectId(document_id)}
         documents_collection.update_one(
             filter,
-            {"$set": {"processing_results": {"text": text_from_file, "summarization": summarization}}}
+            {"$set": {"processing_results": {"text": text_from_file[:300], "summarization": summarization}}}
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database update error: {str(e)}")
