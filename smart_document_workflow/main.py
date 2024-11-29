@@ -8,18 +8,13 @@ from custom_auth import custom_openapi
 
 
 app = FastAPI()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-app.openapi = lambda: custom_openapi(app)
 
 @app.post("/upload/")
-async def upload_d(*, file: UploadFile = File(...), token: Annotated[str, Depends(oauth2_scheme)]):
-    try:
-        response = await upload_document(file,token)
-        return response.model_dump()
-    except Exception as e:
-        return {"error": str(e)}
-    
+async def upload_d(
+    file: UploadFile = File(...),
+):  
+    return await upload_document(file=file)
+
 
 @app.post('/register/')
 async def register(user: Register):
