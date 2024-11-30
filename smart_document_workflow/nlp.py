@@ -6,12 +6,17 @@ nlp = spacy.load("en_core_web_sm")
 
 
 def extract_entities(text: str) -> dict:
-    """
-    Extract structured data (entities) from text using spaCy.
-    """
     try:
         doc = nlp(text)
-        entities = {ent.label_: ent.text for ent in doc.ents}
-        return entities
+        entity_dict = {}
+        
+        for i, ent in enumerate(doc.ents):
+            print(f"Entity: {ent.text}, Label: {ent.label_}")
+            entity_dict[str(i)] = [ent.label_, ent.text]
+
+        return entity_dict
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error in NLP processing: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error in NLP processing for text '{text}': {str(e)}",
+        )

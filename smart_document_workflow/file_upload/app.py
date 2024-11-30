@@ -29,13 +29,13 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
 async def upload_document(*, file: UploadFile = File(...)):
-    
+
     if not file:
         raise HTTPException(status_code=400, detail="No file uploaded")
 
     filename = secure_filename(file.filename)
     file_path = os.path.join(UPLOAD_FOLDER, filename)
-    
+
     try:
         async with aiofiles.open(file_path, "wb") as f:
             await f.write(await file.read())
@@ -48,18 +48,26 @@ async def upload_document(*, file: UploadFile = File(...)):
 
     try:
         text_from_file = await extract_text_from_file_async(file_path)
+        entities = await extract_entities_from_file(text_from_file)
         summarization = await summarize_text_async(text_from_file)
-        if len(summarization) > 1000:
+        if len(summarization) > 2000:
             get_pdf(summarization)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Processing error: {str(e)}")
-
 
     try:
         filter = {"_id": ObjectId(document_id)}
         documents_collection.update_one(
             filter,
-            {"$set": {"processing_results": {"text": text_from_file[:300], "summarization": summarization}}}
+            {
+                "$set": {
+                    "processing_results": {
+                        "text": text_from_file[:300],
+                        "summarization": summarization,
+                        "entities": entities,
+                    }
+                }
+            },
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database update error: {str(e)}")
@@ -78,3 +86,8 @@ async def extract_text_from_file_async(file_path: str) -> str:
 async def summarize_text_async(text: str) -> str:
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, text_summarization, text)
+
+
+async def extract_entities_from_file(text: str) -> dict:
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, extract_entities, text)
