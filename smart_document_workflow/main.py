@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import Depends, FastAPI, File, UploadFile
+from fastapi import Body, Depends, FastAPI, File, UploadFile
 from fastapi.security import OAuth2AuthorizationCodeBearer, OAuth2PasswordBearer
 from file_upload.app import upload_document
 from auth.app import login_user, register_user
@@ -11,9 +11,10 @@ app = FastAPI()
 
 @app.post("/upload/")
 async def upload_d(
+    text: str =  Body(..., embed=True),
     file: UploadFile = File(...),
 ):  
-    return await upload_document(file=file)
+    return await upload_document(file=file, text=text)
 
 
 @app.post('/register/')

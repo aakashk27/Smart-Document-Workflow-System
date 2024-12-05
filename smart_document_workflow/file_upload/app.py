@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import Depends, FastAPI, UploadFile, File, HTTPException
+from fastapi import Body, Depends, FastAPI, UploadFile, File, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from pymongo import MongoClient
 from bson import ObjectId
@@ -28,13 +28,13 @@ UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
-async def upload_document(*, file: UploadFile = File(...)):
-
+async def upload_document(*, file: UploadFile = File(...), text: str = Body(..., embed=True)):
     if not file:
         raise HTTPException(status_code=400, detail="No file uploaded")
 
     filename = secure_filename(file.filename)
     file_path = os.path.join(UPLOAD_FOLDER, filename)
+    text_request = text
 
     try:
         async with aiofiles.open(file_path, "wb") as f:
@@ -49,7 +49,7 @@ async def upload_document(*, file: UploadFile = File(...)):
     try:
         text_from_file = await extract_text_from_file_async(file_path)
         entities = await extract_entities_from_file(text_from_file)
-        summarization = await summarize_text_async(text_from_file)
+        summarization = await summarize_text_async(text_from_file, text_request)
         if len(summarization) > 2000:
             get_pdf(summarization)
     except Exception as e:
@@ -83,9 +83,9 @@ async def extract_text_from_file_async(file_path: str) -> str:
     return await loop.run_in_executor(None, extract_text_from_file, file_path)
 
 
-async def summarize_text_async(text: str) -> str:
+async def summarize_text_async(text: str, text_request: str) -> str:
     loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, text_summarization, text)
+    return await loop.run_in_executor(None, text_summarization, text, text_request)
 
 
 async def extract_entities_from_file(text: str) -> dict:

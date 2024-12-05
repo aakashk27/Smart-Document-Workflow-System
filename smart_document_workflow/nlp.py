@@ -11,7 +11,6 @@ def extract_entities(text: str) -> dict:
         entity_dict = {}
         
         for i, ent in enumerate(doc.ents):
-            print(f"Entity: {ent.text}, Label: {ent.label_}")
             entity_dict[str(i)] = [ent.label_, ent.text]
 
         return entity_dict
