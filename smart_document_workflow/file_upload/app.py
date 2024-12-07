@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 from fastapi import Body, Depends, FastAPI, UploadFile, File, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from pymongo import MongoClient
@@ -28,7 +28,7 @@ UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
-async def upload_document(*, file: UploadFile = File(...), text: str = Body(..., embed=True)):
+async def upload_document(file, text):
     if not file:
         raise HTTPException(status_code=400, detail="No file uploaded")
 

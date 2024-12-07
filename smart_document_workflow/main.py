@@ -11,7 +11,7 @@ app = FastAPI()
 
 @app.post("/upload/")
 async def upload_d(
-    text: str =  Body(..., embed=True),
+    text: Annotated[str | None, Body(description="Task to do with document")] = "",
     file: UploadFile = File(...),
 ):  
     return await upload_document(file=file, text=text)

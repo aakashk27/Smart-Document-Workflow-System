@@ -8,7 +8,10 @@ genai.configure(api_key=os.getenv("API_KEY"))
 def text_summarization(text, text_request):
     try:
         model = genai.GenerativeModel("gemini-1.5-flash")
-        text_prompt = text_request + "\n" + text
+        if text_request:
+           text_prompt = text_request + "\n" + text
+        else:
+            text_prompt = f"Summarize this {text}"
         response = model.generate_content(text_prompt)
         return response.text
     except Exception as e:
