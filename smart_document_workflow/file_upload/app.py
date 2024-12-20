@@ -23,7 +23,6 @@ client = MongoClient(Config.MONGO_URI)
 db = client.smart_documents
 documents_collection = db.documents
 
-# Set up upload folder
 UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -91,3 +90,6 @@ async def summarize_text_async(text: str, text_request: str) -> str:
 async def extract_entities_from_file(text: str) -> dict:
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, extract_entities, text)
+
+
+async def send_doc_to_target(text: str) -> dict:

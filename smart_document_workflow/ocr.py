@@ -9,15 +9,12 @@ def extract_text_from_file(file_path: str) -> str:
     Extract text from an image or PDF using Tesseract OCR.
     """
     try:
-        # Ensure file exists
         if not os.path.exists(file_path):
             raise HTTPException(status_code=500, detail=f"File not found: {file_path}")
 
-        # Add Poppler to PATH explicitly
         os.environ["PATH"] += os.pathsep + "/opt/homebrew/bin"
 
         if file_path.lower().endswith(".pdf"):
-            # Set poppler_path explicitly
             images = convert_from_path(file_path, poppler_path="/opt/homebrew/bin")
             extracted_text = ""
             for page_number, image in enumerate(images):
